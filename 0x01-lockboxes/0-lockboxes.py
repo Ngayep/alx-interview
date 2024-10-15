@@ -1,4 +1,6 @@
 #!/usr/bin/python3
+""" method that determines if all the boxes can be opened."""
+
 def canUnlockAll(boxes):
     """
     Determines if all boxes can be opened starting from box 0.

@@ -4,45 +4,44 @@
 
 import sys
 
-def printStatus(dic, size):
-    """Prints accumulated file size and status code counts."""
-    print("File size: {:d}".format(size))
-    for code in sorted(dic.keys()):
-        if dic[code] != 0:
-            print("{}: {:d}".format(code, dic[code]))
+def print_stats(total_size, status_counts):
+    """Prints the accumulated file size and status code counts."""
+    print("File size: {}".format(total_size))
+    for code in sorted(status_counts):
+        if status_counts[code] > 0:
+            print("{}: {}".format(code, status_counts[code]))
 
-statusCodes = {"200": 0, "301": 0, "400": 0, "401": 0, "403": 0, "404": 0, "405": 0, "500": 0}
-
-count = 0
-size = 0
+# Dictionary to store the count of each status code
+status_codes = {"200": 0, "301": 0, "400": 0, "401": 0, "403": 0, "404": 0, "405": 0, "500": 0}
+total_size = 0
+line_count = 0
 
 try:
     for line in sys.stdin:
-        count += 1
-        stlist = line.split()
+        line_count += 1
+        parts = line.split()
 
-        try:
-            # Add the file size (last item in the line)
-            size += int(stlist[-1])
-        except (IndexError, ValueError):
-            pass
+        # Validate the line format
+        if len(parts) >= 7 and parts[-2].isdigit() and parts[-1].isdigit():
+            status_code = parts[-2]
+            file_size = int(parts[-1])
 
-        try:
-            # Update status code count if it exists in our dictionary
-            if stlist[-2] in statusCodes:
-                statusCodes[stlist[-2]] += 1
-        except IndexError:
-            pass
+            # Update total file size
+            total_size += file_size
 
-        # Print status every 10 lines
-        if count % 10 == 0:
-            printStatus(statusCodes, size)
+            # Update status code count if valid
+            if status_code in status_codes:
+                status_codes[status_code] += 1
 
-    # Print final stats if remaining lines after the last multiple of 10
-    printStatus(statusCodes, size)
+        # Print statistics every 10 lines
+        if line_count % 10 == 0:
+            print_stats(total_size, status_codes)
 
 except KeyboardInterrupt:
-    # Print stats on manual interruption
-    printStatus(statusCodes, size)
+    # Print statistics if interrupted
+    print_stats(total_size, status_codes)
     raise
+
+# Final print after EOF
+print_stats(total_size, status_codes)
 

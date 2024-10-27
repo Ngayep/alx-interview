@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """A script for parsing HTTP request logs."""
 import re
+import sys
 
 
 def extract_input(input_line):
@@ -8,16 +9,16 @@ def extract_input(input_line):
     '''
     fp = (
         r'\s*(?P<ip>\S+)\s*',
-        r'\s*\[(?P<date>\d+\-\d+\-\d+ \d+:\d+:\d+\.\d+)\]',
+        r'\s*\[(?P<date>[^\]]+)\]',
         r'\s*"(?P<request>[^"]*)"\s*',
-        r'\s*(?P<status_code>\S+)',
+        r'\s*(?P<status_code>\d+)',
         r'\s*(?P<file_size>\d+)'
     )
     info = {
         'status_code': 0,
         'file_size': 0,
     }
-    log_fmt = '{}\\-{}{}{}{}\\s*'.format(fp[0], fp[1], fp[2], fp[3], fp[4])
+    log_fmt = '{} - {} {} {} {}'.format(fp[0], fp[1], fp[2], fp[3], fp[4])
     resp_match = re.fullmatch(log_fmt, input_line)
     if resp_match is not None:
         status_code = resp_match.group('status_code')
@@ -69,10 +70,9 @@ def run():
         '500': 0,
     }
     try:
-        while True:
-            line = input()
+        for line in sys.stdin:
             total_file_size = update_metrics(
-                line,
+                line.strip(),
                 total_file_size,
                 status_codes_stats,
             )
